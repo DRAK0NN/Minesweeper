@@ -40,10 +40,9 @@ help          список команд
 
 ## Локальный запуск
 
-Открыть напрямую (NixOS / Linux):
+Открыть напрямую (Linux):
 
 ```bash
-cd minesweeper_cli_trainer
 xdg-open index.html
 ```
 
