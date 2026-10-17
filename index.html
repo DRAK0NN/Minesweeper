@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Minesweeper CLI Trainer</title>
+<style>
+:root{--bg:#090d0e;--panel:#0f1516;--line:#263435;--text:#d8e2dc;--muted:#839892;--green:#9adf7f;--red:#ff6b6b;--yellow:#ffd166;--cyan:#70d6ff}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;min-height:100vh}
+.app{max-width:1180px;margin:auto;padding:18px}.top{border:1px solid var(--line);background:var(--panel);padding:12px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}.title{color:var(--green);font-weight:900}.badge{border:1px solid var(--line);padding:5px 8px;color:var(--muted)}.controls{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}button,select,input{font:inherit;color:var(--text);background:#0a1011;border:1px solid var(--line);padding:7px 9px}button{cursor:pointer}button:hover{border-color:var(--green)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;margin-top:12px}.panel{border:1px solid var(--line);background:var(--panel)}.panel h2{font-size:13px;color:var(--muted);padding:10px;margin:0;border-bottom:1px solid var(--line)}.boardWrap{padding:30px 14px 14px;overflow:auto;min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}.board{display:grid;gap:2px;width:max-content;--cell:34px;user-select:none;margin:0 auto}.cell,.head{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center}.head{color:#61756f}.cell{border:1px solid #223031;background:#0a1011;font-weight:900}.hidden{background:#162122;color:#718780}.hidden:hover{outline:1px solid var(--green)}.flag{background:#251516;color:var(--red)}.mine{color:var(--red)}.n1{color:#70d6ff}.n2{color:#9adf7f}.n3{color:#ff6b6b}.n4{color:#c792ea}.n5{color:#ff9f43}.n6{color:#56d6c9}.n7{color:#eee}.n8{color:#aaa}.clue{outline:2px solid var(--yellow);outline-offset:-2px}.safe{box-shadow:inset 0 0 0 2px var(--cyan)}.danger{box-shadow:inset 0 0 0 2px var(--red)}.exploded{outline:2px solid #ff2d55!important;outline-offset:-2px;background:#351218!important;color:#ff7b90!important}.wrongflag{box-shadow:inset 0 0 0 2px #ff4fd8!important;color:#ff4fd8!important;background:#281225!important}
+.explain{padding:14px;line-height:1.55;min-height:280px}.big{font-size:16px;font-weight:900;color:var(--yellow);margin-bottom:10px}.formula{border:1px dashed var(--line);background:#090e0f;padding:10px;margin:11px 0;white-space:pre-wrap}.legend{border-top:1px solid var(--line);padding:12px;color:var(--muted);font-size:13px;line-height:1.55}.terminal{margin-top:12px;border:1px solid var(--line);background:#050808}.log{height:190px;overflow:auto;padding:10px;white-space:pre-wrap;line-height:1.45}.cmd{display:flex;border-top:1px solid var(--line)}.prompt{color:var(--green);padding:9px 0 9px 10px}.cmd input{flex:1;border:0;outline:0;background:transparent}.ok{color:var(--green)}.bad{color:var(--red)}.info{color:var(--cyan)}.muted{color:var(--muted)}.status{color:var(--muted);font-size:13px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:max-content}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+.lessonBar{width:min(680px,100%);margin:18px auto 2px;border:1px solid #314345;background:#0a1011;padding:12px 13px;box-shadow:0 10px 30px #0006}
+.lessonTop{display:flex;align-items:flex-start;gap:12px}.lessonNum{color:var(--yellow);font-weight:900;white-space:nowrap}.lessonCopy{flex:1;line-height:1.5}.lessonTitle{font-weight:900;color:var(--text);margin-bottom:4px}.lessonText{color:#aebdb8}
+.lessonControls{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}.lessonControls button{padding:5px 8px}.lessonProgress{margin-left:auto;color:var(--muted);font-size:12px}
+.lesson-clue{outline:3px solid var(--yellow)!important;outline-offset:-3px;animation:lessonPulse .85s ease-in-out infinite alternate}.lesson-counted{box-shadow:inset 0 0 0 3px #70d6ff!important;animation:lessonPulse .85s ease-in-out infinite alternate}.lesson-wrong{box-shadow:inset 0 0 0 3px #ff4fd8!important;background:#31142d!important;color:#ff7be1!important;animation:lessonShake .35s linear 2}.lesson-real{box-shadow:inset 0 0 0 3px #ff9f43!important;background:#2d1c0d!important;color:#ffb45f!important;animation:lessonPulse .65s ease-in-out infinite alternate}.lesson-boom{outline:3px solid #ff2d55!important;outline-offset:-3px;background:#44131d!important;color:#ff8aa0!important;animation:lessonBoom .75s ease-in-out infinite alternate}.lesson-safe{box-shadow:inset 0 0 0 3px var(--cyan)!important;animation:lessonPulse .8s ease-in-out infinite alternate}.lesson-dim{opacity:.28}
+@keyframes lessonPulse{from{filter:brightness(.85)}to{filter:brightness(1.55)}}@keyframes lessonBoom{from{transform:scale(.96)}to{transform:scale(1.07)}}@keyframes lessonShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}@media(prefers-reduced-motion:reduce){.lesson-clue,.lesson-counted,.lesson-wrong,.lesson-real,.lesson-boom,.lesson-safe{animation:none}}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="title">MINESWEEPER://TRAINER</div>
+    <div id="mineBadge" class="badge">MINES: --</div>
+    <div id="stateBadge" class="badge">READY</div>
+    <div id="guessBadge" class="badge">LOGIC-ONLY: ON</div>
+    <div class="controls">
+      <select id="difficulty"><option value="easy">easy 9×9 / 10</option><option value="medium">medium 16×16 / 40</option><option value="hard">hard 16×30 / 99</option></select>
+      <button id="newBtn">new [N]</button><button id="hintBtn">hint [H]</button><button id="applyBtn">apply [A]</button><button id="trainerBtn">trainer: ON [T]</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="panel"><h2>BOARD — ЛКМ открыть · ПКМ флаг · координаты A1, C7...</h2><div class="boardWrap">
+      <div id="board" class="board"></div>
+      <div id="lessonBar" class="lessonBar" hidden>
+        <div class="lessonTop"><div id="lessonNum" class="lessonNum">1/1</div><div class="lessonCopy"><div id="lessonTitle" class="lessonTitle"></div><div id="lessonText" class="lessonText"></div></div></div>
+        <div class="lessonControls"><button id="lessonPrev">← назад</button><button id="lessonPlay">⏸ пауза</button><button id="lessonNext">дальше →</button><button id="lessonReplay">↻ сначала</button><button id="lessonReveal">показать всё поле</button><span id="lessonProgress" class="lessonProgress"></span></div>
+      </div>
+      <div class="status"><span>ход: <b id="moves">0</b></span><span>флаги: <b id="flags">0</b></span><span>открыто: <b id="opened">0</b></span></div>
+    </div></section>
+    <aside class="panel"><h2>РАЗБОР — С КАКОЙ ЦИФРЫ НАЧИНАТЬ?</h2><div id="explain" class="explain"></div><div class="legend"><b>Главный алгоритм:</b><br>1) смотри только на цифры у зелёных клеток;<br>2) <code>цифра − флаги = сколько мин ещё нужно</code>;<br>3) если нужно 0 → остальные клетки ✅;<br>4) если нужно мин столько же, сколько закрытых клеток → все 🚩.<br><br><b>Все партии здесь только LOGIC-ONLY. Подсказки базовые и гарантированные:</b> они не гадают, а используют только эти 2 правила.<br><br>После проигрыша автоматически запускается пошаговая анимация ошибки. <code>why</code> или <code>R</code> — повторить.<br><br>Команды: <code>open C4</code>, <code>flag D7</code>, <code>hint</code>, <code>why</code>, <code>apply</code>, <code>new</code>, <code>help</code>.</div></aside>
+  </div>
+
+  <section class="terminal"><div id="log" class="log"></div><div class="cmd"><span class="prompt">&gt;</span><input id="command" autocomplete="off" spellcheck="false" placeholder="hint" /></div></section>
+</div>
+<script>
+(() => {
+const CFG={easy:{rows:9,cols:9,mines:10},medium:{rows:16,cols:16,mines:40},hard:{rows:16,cols:30,mines:99}};
+const H=0,O=1,F=2, $=id=>document.getElementById(id);
+let difficulty='easy',rows=9,cols=9,mineCount=10,mines=[],counts=[],state=[],started=false,gameOver=false,won=false,moves=0,flags=0,opened=0,trainer=(localStorage.getItem('ms_trainer')!=='off'),noGuess=true,verified=false,currentHint=null,lastLoss=null,lastLossHtml='',lossLesson={active:false,playing:false,step:0,steps:[],timer:null};
+const boardEl=$('board'),logEl=$('log'),explainEl=$('explain');
+const blank=v=>Array.from({length:rows},()=>Array(cols).fill(v));
+function log(s,cls=''){const d=document.createElement('div');d.className=cls;d.textContent=s;logEl.appendChild(d);logEl.scrollTop=logEl.scrollHeight}
+function colName(c){let s='',n=c;do{s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)-1}while(n>=0);return s}
+function coord(r,c){return colName(c)+(r+1)}
+function parseCoord(s){const m=String(s||'').toUpperCase().match(/^([A-Z]+)(\d+)$/);if(!m)return null;let c=0;for(const ch of m[1])c=c*26+ch.charCodeAt(0)-64;c--;const r=+m[2]-1;return r>=0&&r<rows&&c>=0&&c<cols?[r,c]:null}
+function setTrainer(v,announce=true){trainer=!!v;localStorage.setItem('ms_trainer',trainer?'on':'off');if(!trainer){currentHint=null;}render();if(announce)log('trainer '+(trainer?'ON':'OFF'),trainer?'ok':'muted')}
+function toggleTrainer(){setTrainer(!trainer)}
+function nbr(r,c){const a=[];for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const rr=r+dr,cc=c+dc;if(rr>=0&&rr<rows&&cc>=0&&cc<cols)a.push([rr,cc])}return a}
+function reset(){stopLossLesson(false);({rows,cols,mines:mineCount}=CFG[difficulty]);mines=blank(false);counts=blank(0);state=blank(H);started=false;gameOver=false;won=false;moves=flags=opened=0;verified=false;currentHint=null;lastLoss=null;lastLossHtml='';logEl.innerHTML='';clearExplain();render();log('Новая игра. Первый клик безопасный.','ok');log('Не знаешь, с какой цифры начать? Нажми H.','info')}
+function clearExplain(){explainEl.innerHTML='<div class="big">Сначала просто открой клетку.</div>Потом нажми <b>H</b>. Я сам найду цифру, с которой проще всего начать.<div class="formula">цифра − флаги = сколько мин ещё нужно</div>'}
+function shuffle(a){for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function calc(){counts=blank(0);for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(mines[r][c]){counts[r][c]=-1;continue}counts[r][c]=nbr(r,c).reduce((s,[rr,cc])=>s+(mines[rr][cc]?1:0),0)}}
+function place(fr,fc){mines=blank(false);const ban=new Set();for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const r=fr+dr,c=fc+dc;if(r>=0&&r<rows&&c>=0&&c<cols)ban.add(r+','+c)}const cells=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)if(!ban.has(r+','+c))cells.push([r,c]);shuffle(cells);for(let i=0;i<mineCount;i++){const [r,c]=cells[i];mines[r][c]=true}calc()}
+function simFlood(op,r,c){const q=[[r,c]],seen=new Set();while(q.length){const [rr,cc]=q.shift(),k=rr+','+cc;if(seen.has(k)||mines[rr][cc])continue;seen.add(k);op[rr][cc]=true;if(counts[rr][cc]===0)for(const [nr,nc] of nbr(rr,cc))if(!op[nr][nc]&&!mines[nr][nc])q.push([nr,nc])}}
+function solvable(fr,fc){const op=blank(false),fl=blank(false);simFlood(op,fr,fc);let ch=true,g=0;while(ch&&g++<5000){ch=false;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(!op[r][c]||counts[r][c]<=0)continue;const ns=nbr(r,c),hid=ns.filter(([rr,cc])=>!op[rr][cc]&&!fl[rr][cc]),f=ns.filter(([rr,cc])=>fl[rr][cc]).length;if(!hid.length)continue;if(f===counts[r][c])for(const [rr,cc] of hid){if(!mines[rr][cc]&&!op[rr][cc]){simFlood(op,rr,cc);ch=true}}else if(f+hid.length===counts[r][c])for(const [rr,cc] of hid)if(!fl[rr][cc]){fl[rr][cc]=true;ch=true}}}let safe=0,openedSim=0;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(!mines[r][c])safe++;if(op[r][c])openedSim++}return safe===openedSim}
+function generate(fr,fc){let attempts=0;do{place(fr,fc);attempts++}while(!solvable(fr,fc));verified=true;log('LOGIC-ONLY: поле проверено — решается базовыми правилами без угадывания'+(attempts>1?' (генераций: '+attempts+')':'')+'.','ok')}
+function flood(r,c){const q=[[r,c]],seen=new Set();while(q.length){const [rr,cc]=q.shift(),k=rr+','+cc;if(seen.has(k)||state[rr][cc]!==H||mines[rr][cc])continue;seen.add(k);state[rr][cc]=O;opened++;if(counts[rr][cc]===0)for(const [nr,nc] of nbr(rr,cc))if(state[nr][nc]===H&&!mines[nr][nc])q.push([nr,nc])}}
+function cloneState(src){return src.map(row=>row.slice())}
+
+function stopLossLesson(doRender=true){if(lossLesson.timer){clearTimeout(lossLesson.timer);lossLesson.timer=null}lossLesson.active=false;lossLesson.playing=false;lossLesson.step=0;lossLesson.steps=[];const bar=$('lessonBar');if(bar)bar.hidden=true;if(doRender)render()}
+function lessonCells(list,kind,showMine=false){return(list||[]).map(([r,c])=>({r,c,kind,showMine}))}
+function forcedMineProof(r,c,before){
+  const proofs=[];
+  for(let rr=0;rr<rows;rr++)for(let cc=0;cc<cols;cc++){
+    if(before[rr][cc]!==O||counts[rr][cc]<=0)continue;
+    const ns=nbr(rr,cc);
+    const hid=ns.filter(([a,b])=>before[a][b]===H);
+    if(!hid.some(([a,b])=>a===r&&b===c))continue;
+    const fl=ns.filter(([a,b])=>before[a][b]===F);
+    const wrong=fl.filter(([a,b])=>!mines[a][b]);
+    const need=counts[rr][cc]-fl.length;
+    if(need===hid.length && wrong.length===0){
+      proofs.push({r:rr,c:cc,num:counts[rr][cc],hid,fl,need,independent:fl.length===0});
+    }
+  }
+  proofs.sort((a,b)=>(b.independent-a.independent)||(a.hid.length-b.hid.length)||(a.fl.length-b.fl.length));
+  return proofs[0]||null;
+}
+function findExactAlternative(before,wrongFlags,boomR,boomC){
+  // Убираем только заведомо ложные флаги и ищем обычный базовый вывод.
+  // Так финальный совет не строится на ошибочном флаге игрока.
+  const cleaned=before.map(row=>row.slice());
+  for(const [r,c] of (wrongFlags||[]))cleaned[r][c]=H;
+  const oldState=state;state=cleaned;const ds=deductions();state=oldState;
+  if(!ds.length)return null;
+  // Лучше показать действие в другом месте. Если такого нет — покажем правильное действие с клеткой взрыва.
+  const away=ds.find(d=>!d.hid.some(([r,c])=>r===boomR&&c===boomC));
+  return away||ds[0];
+}
+function altLessonText(a){
+  if(!a)return'';
+  const clue=coord(a.r,a.c),targets=a.hid.map(([r,c])=>coord(r,c)).join(', ');
+  if(a.type==='safe')return 'Смотри на '+clue+' = '+a.num+'. Флагов рядом '+a.f+', поэтому '+a.num+' − '+a.f+' = 0. Мин уже хватает → '+targets+' можно было открыть ✅.';
+  return 'Смотри на '+clue+' = '+a.num+'. Флагов рядом '+a.f+', значит нужно ещё '+a.need+' мин. Закрытых клеток осталось ровно '+a.hid.length+' ('+targets+'). '+a.need+' = '+a.hid.length+' → '+targets+' надо было отметить 🚩.';
+}
+function buildLossLesson(){
+  if(!lastLoss)return[];
+  const L=lastLoss,boom=coord(L.r,L.c),w=L.witness,steps=[];
+  steps.push({title:'Стоп-кадр: момент перед ошибкой',text:'Возвращаем поле на секунду назад — до клика по '+boom+'. Смотрим только на то, что было видно.',marks:[{r:L.r,c:L.c,kind:'boom'}],dim:false});
+
+  if(L.directProof){
+    const p=L.directProof,clue=coord(p.r,p.c),targets=p.hid.map(([r,c])=>coord(r,c)).join(', ');
+    steps.push({title:'1. Вот цифра, которую ты пропустил',text:clue+' = '+p.num+'. Она уже давала точный ответ.',marks:[{r:p.r,c:p.c,kind:'clue'}],dim:true});
+    if(p.fl.length){
+      steps.push({title:'2. Вычитаем найденные мины',text:p.num+' − '+p.fl.length+' = '+p.need+'. Значит рядом нужно ещё '+p.need+' мин.',marks:[{r:p.r,c:p.c,kind:'clue'},...lessonCells(p.fl,'counted')],dim:true});
+    }
+    steps.push({title:(p.fl.length?'3':'2')+'. Смотрим на закрытые клетки',text:'Закрытых клеток осталось ровно '+p.hid.length+': '+targets+'. Мин нужно тоже '+p.need+'. Значит '+(p.hid.length===1?targets+' — мина.':'все они — мины.'),marks:[{r:p.r,c:p.c,kind:'clue'},...lessonCells(p.hid,'real',true)],dim:true});
+    steps.push({title:'Никакого 50/50',text:boom+' была доказанной миной. Правильный ход — поставить 🚩 на '+boom+', а не открывать её.',marks:[{r:p.r,c:p.c,kind:'clue'},{r:L.r,c:L.c,kind:'boom',showMine:true}],dim:false});
+  } else if(w&&w.f.length===w.num&&w.wrong.length){
+    const clue=coord(w.r,w.c),flagNames=w.f.map(([a,b])=>coord(a,b)).join(', '),wrongNames=w.wrong.map(([a,b])=>coord(a,b)).join(', '),actualNames=w.actual.map(([a,b])=>coord(a,b)).join(', ');
+    steps.push({title:'1. Вот цифра, на которую ты опирался',text:clue+' = '+w.num+'. Именно её счёт выглядел уже закрытым.',marks:[{r:w.r,c:w.c,kind:'clue'}],dim:true});
+    steps.push({title:'2. Ты посчитал эти флаги',text:'Рядом с '+clue+' стояло '+w.f.length+' флага: '+flagNames+'. Получилось '+w.f.length+' = '+w.num+', поэтому '+boom+' показалась безопасной.',marks:[{r:w.r,c:w.c,kind:'clue'},...lessonCells(w.f,'counted')],dim:true});
+    steps.push({title:'3. Но один флаг был ложным',text:wrongNames+' — это не мина. Из-за этого счёт был неверным.',marks:[{r:w.r,c:w.c,kind:'clue'},...lessonCells(w.wrong,'wrong')],dim:true});
+    steps.push({title:'4. Настоящий счёт',text:'Реальные мины вокруг '+clue+': '+actualNames+'.',marks:[{r:w.r,c:w.c,kind:'clue'},...lessonCells(w.actual,'real',true)],dim:true});
+    steps.push({title:'5. Поэтому '+boom+' была миной',text:boom+' заняла место ложного флага '+wrongNames+' в настоящем счёте.',marks:[{r:w.r,c:w.c,kind:'clue'},{r:L.r,c:L.c,kind:'boom',showMine:true},...lessonCells(w.wrong,'wrong')],dim:true});
+  } else {
+    if(w)steps.push({title:'1. Проверяем ближайшую цифру',text:coord(w.r,w.c)+' = '+w.num+'. Она не доказывала, что '+boom+' безопасна.',marks:[{r:w.r,c:w.c,kind:'clue'},{r:L.r,c:L.c,kind:'boom'}],dim:true});
+    steps.push({title:'2. '+boom+' не была доказана безопасной',text:'На LOGIC-ONLY поле угадывать не нужно. Сейчас покажу конкретную цифру и конкретную клетку, куда надо было пойти вместо этого.',marks:[{r:L.r,c:L.c,kind:'boom'}],dim:true});
+  }
+  if(L.alt){
+    const a=L.alt,targets=a.hid.map(([r,c])=>coord(r,c)).join(', ');
+    steps.push({title:'Куда надо было пойти вместо этого',text:altLessonText(a),marks:[{r:a.r,c:a.c,kind:'clue'},...lessonCells(a.hid,a.type==='safe'?'safe':'real',a.type==='mine')],dim:true});
+    steps.push({title:'Правильное действие',text:(a.type==='safe'?'Открыть ':'Поставить флаг на ')+targets+(a.type==='safe'?' ✅':' 🚩')+'. Это был точный ход, не догадка.',marks:[{r:a.r,c:a.c,kind:'clue'},...lessonCells(a.hid,a.type==='safe'?'safe':'real',a.type==='mine')],dim:false});
+  }
+  return steps;
+}
+function lessonMarkFor(r,c){if(!lossLesson.active||!lossLesson.steps.length)return null;const st=lossLesson.steps[lossLesson.step];return(st.marks||[]).find(m=>m.r===r&&m.c===c)||null}
+function showLossLessonStep(){if(!lossLesson.active||!lossLesson.steps.length)return;const st=lossLesson.steps[lossLesson.step],total=lossLesson.steps.length;$('lessonBar').hidden=false;$('lessonNum').textContent=(lossLesson.step+1)+'/'+total;$('lessonTitle').textContent=st.title;$('lessonText').textContent=st.text;$('lessonProgress').textContent='шаг '+(lossLesson.step+1)+' из '+total;$('lessonPlay').textContent=lossLesson.playing?'⏸ пауза':'▶ продолжить';render();if(lossLesson.timer){clearTimeout(lossLesson.timer);lossLesson.timer=null}if(lossLesson.playing){lossLesson.timer=setTimeout(()=>{if(lossLesson.step<lossLesson.steps.length-1){lossLesson.step++;showLossLessonStep()}else{lossLesson.playing=false;$('lessonPlay').textContent='▶ повторить'}},2600)}}
+function startLossLesson(){if(!lastLoss)return;if(lossLesson.timer)clearTimeout(lossLesson.timer);lossLesson.steps=buildLossLesson();lossLesson.step=0;lossLesson.active=true;lossLesson.playing=true;showLossLessonStep()}
+function lessonPrev(){if(!lossLesson.active)return;lossLesson.playing=false;lossLesson.step=Math.max(0,lossLesson.step-1);showLossLessonStep()}
+function lessonNext(){if(!lossLesson.active)return;lossLesson.playing=false;lossLesson.step=Math.min(lossLesson.steps.length-1,lossLesson.step+1);showLossLessonStep()}
+function lessonReplay(){if(!lastLoss)return;lossLesson.steps=buildLossLesson();lossLesson.step=0;lossLesson.active=true;lossLesson.playing=true;showLossLessonStep()}
+function lessonTogglePlay(){if(!lossLesson.active){lessonReplay();return}if(lossLesson.step===lossLesson.steps.length-1&&!lossLesson.playing)lossLesson.step=0;lossLesson.playing=!lossLesson.playing;showLossLessonStep()}
+function lessonReveal(){stopLossLesson(true);if(lastLossHtml)explainEl.innerHTML=lastLossHtml}
+
+function lossAnalysis(r,c,before){
+  const boom=coord(r,c),directProof=forcedMineProof(r,c,before);
+  const wrongFlags=[],correctFlags=[];
+  for(let rr=0;rr<rows;rr++)for(let cc=0;cc<cols;cc++)if(before[rr][cc]===F){
+    (mines[rr][cc]?correctFlags:wrongFlags).push([rr,cc]);
+  }
+
+  const witnesses=[];
+  for(const [rr,cc] of nbr(r,c)){
+    if(before[rr][cc]!==O||counts[rr][cc]<=0)continue;
+    const ns=nbr(rr,cc),f=ns.filter(([a,b])=>before[a][b]===F),wrong=f.filter(([a,b])=>!mines[a][b]),actual=ns.filter(([a,b])=>mines[a][b]);
+    witnesses.push({r:rr,c:cc,num:counts[rr][cc],f,wrong,actual});
+  }
+  witnesses.sort((a,b)=>{const as=(a.f.length===a.num&&a.wrong.length?10:0)+(a.wrong.length?5:0)-Math.abs(a.num-a.f.length),bs=(b.f.length===b.num&&b.wrong.length?10:0)+(b.wrong.length?5:0)-Math.abs(b.num-b.f.length);return bs-as});
+  const w=witnesses[0]||null;
+  const alt=findExactAlternative(before,wrongFlags,r,c);
+
+  let html='<div class="big">💥 '+boom+' — мина. '+(directProof?'Это НЕ 50/50.':'Разбираем почему.')+'</div>';
+
+  if(directProof){
+    const p=directProof,clue=coord(p.r,p.c),targets=p.hid.map(([a,b])=>coord(a,b)).join(', ');
+    html+='<b>'+clue+' = '+p.num+'</b> уже прямо доказывала, что <b>'+boom+' — мина</b>.'+
+      '<div class="formula">'+clue+' = '+p.num+'\nфлагов рядом: '+p.fl.length+'\nзакрытых клеток без флага: '+p.hid.length+'\n'+p.num+' − '+p.fl.length+' = '+p.need+' мин ещё нужно</div>'+
+      'Закрытых клеток осталось <b>'+p.hid.length+'</b>: <b>'+targets+'</b>. Мин нужно тоже <b>'+p.need+'</b>. '+
+      (p.hid.length===1?'<b>Значит '+boom+' обязана быть миной 🚩.</b>':'<b>Значит все эти клетки — мины 🚩.</b>')+
+      '<br><br><b>Правильный ход:</b> поставить флаг на '+boom+', а не открывать её.';
+  } else if(w&&w.f.length===w.num&&w.wrong.length){
+    const flagNames=w.f.map(([a,b])=>coord(a,b)).join(', '),wrongNames=w.wrong.map(([a,b])=>coord(a,b)).join(', '),realNames=w.actual.map(([a,b])=>coord(a,b)).join(', ');
+    html+='Ты смотрел на <b>'+coord(w.r,w.c)+' = '+w.num+'</b>. Рядом стояло '+w.f.length+' флага: '+flagNames+'. Но <b>'+wrongNames+'</b> был ложным.'+
+      '<div class="formula">реальные мины рядом: '+realNames+'</div>'+boom+' была настоящей миной, которую ложный флаг вытеснил из твоего счёта.';
+  } else if(w){
+    html+='Ближайшая полезная цифра — <b>'+coord(w.r,w.c)+' = '+w.num+'</b>. Она не доказывала безопасность '+boom+'.';
+  } else html+='Этот ход не был доказан цифрами.';
+
+  if(wrongFlags.length){
+    html+='<br><br><b>'+(directProof?'Отдельная ошибка на поле':'Ошибочные флаги перед проигрышем')+':</b> '+wrongFlags.map(([a,b])=>coord(a,b)).join(', ')+'. '+(directProof?'Это не причина взрыва на '+boom+', но этот флаг тоже стоял не на мине.':'Они подсвечены розовым.');
+  } else html+='<br><br>Ошибочных флагов перед этим ходом не было.';
+
+  if(directProof){
+    html+='<br><br><b>Что ты упустил:</b> '+coord(directProof.r,directProof.c)+' уже давала однозначный вывод. Здесь не было угадывания.';
+  }
+
+  if(alt){
+    const targets=alt.hid.map(([a,b])=>coord(a,b)).join(', '),clue=coord(alt.r,alt.c);
+    html+='<br><br><b>Куда надо было пойти вместо '+boom+':</b><br>'+
+      'смотреть на <b>'+clue+' = '+alt.num+'</b>.'+
+      '<div class="formula">'+clue+' = '+alt.num+'\nфлагов рядом: '+alt.f+'\n'+alt.num+' − '+alt.f+' = '+alt.need+' мин ещё нужно\nзакрытых клеток: '+alt.hid.length+'</div>'+
+      (alt.type==='safe'
+        ? 'Мин уже хватает. Поэтому <b>'+targets+'</b> '+(alt.hid.length===1?'была безопасна':'были безопасны')+' → <b>открыть ✅</b>.'
+        : 'Нужно ещё <b>'+alt.need+'</b> мин, и закрытых клеток ровно <b>'+alt.hid.length+'</b>. Поэтому <b>'+targets+'</b> → <b>поставить 🚩</b>.')+
+      '<br><br><b>То есть конкретно:</b> '+(alt.type==='safe'?'открыть ':'поставить флаг на ')+'<b>'+targets+'</b>.';
+  } else {
+    html+='<br><br><b>Куда надо было пойти:</b> этот конкретный снимок не дал простого локального хода после удаления ложных флагов. Такое не должно происходить на LOGIC-ONLY карте — начни новую партию и сообщи, если повторится.';
+  }
+
+  html+='<br><br><span style="color:var(--muted)">Команда <code>why</code> или клавиша <code>R</code> повторит анимацию.</span>';
+  lastLoss={r,c,before,wrongFlags,witness:w,alt,directProof};lastLossHtml=html;explainEl.innerHTML=html;
+  log('💥 '+boom+' — мина. Справа показан разбор.','bad');
+  if(directProof)log('Это НЕ 50/50: '+coord(directProof.r,directProof.c)+' прямо доказывала мину в '+boom+'.','info');
+  if(wrongFlags.length)log('Отдельный ошибочный флаг: '+wrongFlags.map(([a,b])=>coord(a,b)).join(', ')+'.','bad');
+}
+function openCell(r,c){if(gameOver||state[r][c]!==H)return;if(!started){generate(r,c);started=true}moves++;if(mines[r][c]){if(trainer){log('⛔ '+coord(r,c)+' — там мина. В тренере ход отменён.','bad');explainEl.innerHTML='<div class="big">Стоп: '+coord(r,c)+' — мина.</div>Не кликай клетку, пока цифры не доказали, что она безопасна.<br><br>Нажми <b>H</b> — я покажу доказуемый ход.';render();return}const before=cloneState(state);state[r][c]=O;gameOver=true;currentHint=null;for(let rr=0;rr<rows;rr++)for(let cc=0;cc<cols;cc++)if(mines[rr][cc])state[rr][cc]=O;lossAnalysis(r,c,before);render();setTimeout(startLossLesson,350);return}flood(r,c);checkWin();render();if(trainer&&!gameOver)setTimeout(()=>hint(true),0)}
+function flagCell(r,c){if(gameOver||state[r][c]===O)return;if(!started){log('Сначала открой клетку.','bad');return}if(state[r][c]===F){state[r][c]=H;flags--;moves++}else{if(trainer&&!mines[r][c]){log('⚠ '+coord(r,c)+' — это не мина. Неправильный флаг не ставлю.','bad');explainEl.innerHTML='<div class="big">Этот флаг не доказан.</div>Флаг ставь только когда цифре нужно N мин и закрытых клеток осталось ровно N.';return}state[r][c]=F;flags++;moves++}checkWin();render();if(trainer&&!gameOver)setTimeout(()=>hint(true),0)}
+function checkWin(){if(opened===rows*cols-mineCount){won=gameOver=true;log('✓ CLEAR — поле решено.','ok');explainEl.innerHTML='<div class="big">CLEAR ✓</div>Ты выиграл. Нажми N для новой партии.'}}
+function deductions(){const a=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(state[r][c]!==O||counts[r][c]<=0)continue;const ns=nbr(r,c),hid=ns.filter(([rr,cc])=>state[rr][cc]===H),f=ns.filter(([rr,cc])=>state[rr][cc]===F).length;if(!hid.length)continue;const need=counts[r][c]-f;if(need===0)a.push({type:'safe',r,c,num:counts[r][c],f,hid,need});else if(need===hid.length)a.push({type:'mine',r,c,num:counts[r][c],f,hid,need})}a.sort((x,y)=>x.hid.length-y.hid.length||x.need-y.need);return a}
+function explain(h,auto=false){const cells=h.hid.map(([r,c])=>coord(r,c)).join(', '),title=h.type==='mine'?'Здесь можно точно поставить флаг':'Здесь можно точно открыть клетку';explainEl.innerHTML='<div class="big">'+title+'</div>Смотри только на <b>'+h.num+'</b> в клетке <code>'+coord(h.r,h.c)+'</code>.<br><br>Флагов рядом: <b>'+h.f+'</b>.<br>Закрытых клеток рядом: <b>'+h.hid.length+'</b>.<div class="formula">'+h.num+' − '+h.f+' = '+h.need+'\nцифра − флаги = сколько мин ещё нужно</div>'+(h.type==='mine'?('Нужно ещё <b>'+h.need+'</b> мин и закрытых клеток ровно <b>'+h.hid.length+'</b> → <b>'+cells+' = 🚩</b>.'):('Мин уже хватает → остальные закрытые клетки безопасны: <b>'+cells+' = ✅</b>.'));if(!auto)log('Подсказка: смотри на '+coord(h.r,h.c)+' ('+h.num+').','info')}
+function hint(auto=false){if(!started||gameOver){if(!auto)log('Сначала открой клетку.','bad');return}currentHint=deductions()[0]||null;if(!currentHint){explainEl.innerHTML='<div class="big">Простого хода сейчас нет.</div>Проверь свои флаги. На LOGIC-ONLY поле после правильных ходов снова появится однозначная цифра.';if(!auto)log('Нет простого вывода. Проверь флаги.','bad')}else explain(currentHint,auto);render()}
+function apply(){if(!currentHint)hint(false);const h=currentHint;if(!h)return;currentHint=null;if(h.type==='mine'){for(const [r,c] of h.hid)if(state[r][c]===H){state[r][c]=F;flags++;moves++}log('Применено: '+h.hid.map(([r,c])=>coord(r,c)).join(', ')+' → 🚩','ok');render();checkWin();if(trainer&&!gameOver)setTimeout(()=>hint(true),0)}else{const [r,c]=h.hid[0];log('Применено: '+coord(r,c)+' → открыть','ok');openCell(r,c)}}
+function render(){boardEl.innerHTML='';boardEl.style.gridTemplateColumns='repeat('+(cols+1)+',var(--cell))';const displayState=(lossLesson.active&&lastLoss)?lastLoss.before:state;const lessonStep=(lossLesson.active&&lossLesson.steps.length)?lossLesson.steps[lossLesson.step]:null;let d=document.createElement('div');d.className='head';boardEl.appendChild(d);for(let c=0;c<cols;c++){d=document.createElement('div');d.className='head';d.textContent=colName(c);boardEl.appendChild(d)}for(let r=0;r<rows;r++){d=document.createElement('div');d.className='head';d.textContent=r+1;boardEl.appendChild(d);for(let c=0;c<cols;c++){d=document.createElement('div');d.className='cell';const mark=lessonMarkFor(r,c),st=displayState[r][c],forceMine=mark&&mark.showMine&&mines[r][c];if(forceMine){d.classList.add('mine');d.textContent='*'}else if(st===H){d.classList.add('hidden');d.textContent='·'}else if(st===F){d.classList.add('flag');d.textContent='⚑'}else if(mines[r][c]){d.classList.add('mine');d.textContent='*'}else if(counts[r][c]){d.classList.add('n'+counts[r][c]);d.textContent=counts[r][c]}else d.textContent=' ';if(currentHint&&!lossLesson.active){if(currentHint.r===r&&currentHint.c===c)d.classList.add('clue');if(currentHint.hid.some(([rr,cc])=>rr===r&&cc===c))d.classList.add(currentHint.type==='mine'?'danger':'safe')}if(lossLesson.active&&lessonStep){const hasAny=(lessonStep.marks||[]).length>0,isMarked=!!mark;if(lessonStep.dim&&hasAny&&!isMarked)d.classList.add('lesson-dim');if(mark){if(mark.kind==='clue')d.classList.add('lesson-clue');else if(mark.kind==='counted')d.classList.add('lesson-counted');else if(mark.kind==='wrong')d.classList.add('lesson-wrong');else if(mark.kind==='real')d.classList.add('lesson-real');else if(mark.kind==='boom')d.classList.add('lesson-boom');else if(mark.kind==='safe')d.classList.add('lesson-safe')}}else if(lastLoss){if(lastLoss.r===r&&lastLoss.c===c)d.classList.add('exploded');if(lastLoss.wrongFlags.some(([rr,cc])=>rr===r&&cc===c))d.classList.add('wrongflag')}d.title=coord(r,c);d.onclick=()=>openCell(r,c);d.oncontextmenu=e=>{e.preventDefault();flagCell(r,c)};boardEl.appendChild(d)}}$('mineBadge').textContent='MINES: '+Math.max(0,mineCount-flags);$('stateBadge').textContent=gameOver?(won?'CLEAR':'BOOM'):(started?'RUNNING':'READY');$('guessBadge').textContent='LOGIC-ONLY: '+(verified?'VERIFIED':'ON');$('moves').textContent=moves;$('flags').textContent=flags;$('opened').textContent=opened;$('trainerBtn').textContent='trainer: '+(trainer?'ON':'OFF')+' [T]'}
+function help(){log('КОМАНДЫ\n  open C4       открыть\n  flag D7       флаг\n  hint          найти самую простую цифру\n  why           повторить объяснение\n  apply         выполнить подсказку\n  new           новая игра\n  mode easy     easy / medium / hard\n  trainer on    trainer on/off\n\nКЛАВИШИ: H подсказка · A применить · N новая · T тренер · / командная строка','info')}
+function cmd(line){const p=line.trim().split(/\s+/),c=(p[0]||'').toLowerCase();if(!c)return;log('> '+line,'muted');if(c==='open'||c==='o'){const q=parseCoord(p[1]);q?openCell(...q):log('Пример: open C4','bad')}else if(c==='flag'||c==='f'){const q=parseCoord(p[1]);q?flagCell(...q):log('Пример: flag C4','bad')}else if(c==='hint'||c==='h')hint(false);else if(c==='why'){if(gameOver&&lastLossHtml){explainEl.innerHTML=lastLossHtml;lessonReplay();log('Повторяю разбор поражения.','info')}else currentHint?explain(currentHint,false):hint(false);}else if(c==='apply'||c==='a')apply();else if(c==='new'||c==='n')reset();else if(c==='help'||c==='?')help();else if(c==='mode'){if(CFG[p[1]]){difficulty=p[1];$('difficulty').value=difficulty;reset()}else log('mode easy | medium | hard','bad')}else if(c==='trainer'){const v=(p[1]||'').toLowerCase();if(v==='on')setTrainer(true);else if(v==='off')setTrainer(false);else toggleTrainer()}else if(c==='noguess'){log('Угадывание отключено навсегда: все партии только LOGIC-ONLY.','info')}else log('Неизвестная команда. help','bad')}
+$('lessonPrev').onclick=lessonPrev;$('lessonNext').onclick=lessonNext;$('lessonReplay').onclick=lessonReplay;$('lessonPlay').onclick=lessonTogglePlay;$('lessonReveal').onclick=lessonReveal;$('newBtn').onclick=reset;$('hintBtn').onclick=()=>hint(false);$('applyBtn').onclick=apply;$('trainerBtn').onclick=e=>{e.preventDefault();toggleTrainer();e.currentTarget.blur()};$('difficulty').onchange=e=>{difficulty=e.target.value;reset()};$('command').onkeydown=e=>{if(e.key==='Enter'){const v=e.target.value;e.target.value='';cmd(v)}};document.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey)return;if(document.activeElement===$('command'))return;const k=(e.key||'').toLowerCase();if(k==='h'){e.preventDefault();hint(false)}else if(k==='a'){e.preventDefault();apply()}else if(k==='n'){e.preventDefault();reset()}else if(k==='t'||k==='е'){e.preventDefault();e.stopPropagation();toggleTrainer()}else if(k==='r'&&gameOver&&lastLoss){e.preventDefault();lessonReplay()}else if(e.key==='ArrowLeft'&&lossLesson.active){e.preventDefault();lessonPrev()}else if(e.key==='ArrowRight'&&lossLesson.active){e.preventDefault();lessonNext()}else if(k==='/'){e.preventDefault();$('command').focus()}});reset();
+})();
+</script>
+</body>
+</html>
