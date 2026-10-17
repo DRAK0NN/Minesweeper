@@ -2,22 +2,44 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5" />
 <title>Minesweeper CLI Trainer</title>
 <style>
 :root{--bg:#090d0e;--panel:#0f1516;--line:#263435;--text:#d8e2dc;--muted:#839892;--green:#9adf7f;--red:#ff6b6b;--yellow:#ffd166;--cyan:#70d6ff}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;min-height:100vh}
-.app{max-width:1180px;margin:auto;padding:18px}.top{border:1px solid var(--line);background:var(--panel);padding:12px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}.title{color:var(--green);font-weight:900}.badge{border:1px solid var(--line);padding:5px 8px;color:var(--muted)}.controls{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}button,select,input{font:inherit;color:var(--text);background:#0a1011;border:1px solid var(--line);padding:7px 9px}button{cursor:pointer}button:hover{border-color:var(--green)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;min-height:100vh;overflow-x:hidden}
+.app{max-width:1180px;margin:auto;padding:18px}.top{border:1px solid var(--line);background:var(--panel);padding:12px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}.title{color:var(--green);font-weight:900}.badge{border:1px solid var(--line);padding:5px 8px;color:var(--muted);font-size:13px}.controls{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}button,select,input{font:inherit;color:var(--text);background:#0a1011;border:1px solid var(--line);padding:7px 9px;border-radius:0}button{cursor:pointer;touch-action:manipulation}button:hover{border-color:var(--green)}
 .flagModeOn{border-color:var(--red)!important;color:var(--red)!important;background:#251516!important}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;margin-top:12px}.panel{border:1px solid var(--line);background:var(--panel)}.panel h2{font-size:13px;color:var(--muted);padding:10px;margin:0;border-bottom:1px solid var(--line)}.boardWrap{padding:30px 14px 14px;overflow:auto;min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}.board{display:grid;gap:2px;width:max-content;--cell:34px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;margin:0 auto}.cell,.head{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center}.head{color:#61756f}.cell{border:1px solid #223031;background:#0a1011;font-weight:900;touch-action:manipulation}.hidden{background:#162122;color:#718780}.hidden:hover{outline:1px solid var(--green)}.flag{background:#251516;color:var(--red)}.mine{color:var(--red)}.n1{color:#70d6ff}.n2{color:#9adf7f}.n3{color:#ff6b6b}.n4{color:#c792ea}.n5{color:#ff9f43}.n6{color:#56d6c9}.n7{color:#eee}.n8{color:#aaa}.clue{outline:2px solid var(--yellow);outline-offset:-2px}.safe{box-shadow:inset 0 0 0 2px var(--cyan)}.danger{box-shadow:inset 0 0 0 2px var(--red)}.exploded{outline:2px solid #ff2d55!important;outline-offset:-2px;background:#351218!important;color:#ff7b90!important}.wrongflag{box-shadow:inset 0 0 0 2px #ff4fd8!important;color:#ff4fd8!important;background:#281225!important}
-.explain{padding:14px;line-height:1.55;min-height:280px}.big{font-size:16px;font-weight:900;color:var(--yellow);margin-bottom:10px}.formula{border:1px dashed var(--line);background:#090e0f;padding:10px;margin:11px 0;white-space:pre-wrap}.legend{border-top:1px solid var(--line);padding:12px;color:var(--muted);font-size:13px;line-height:1.55}.terminal{margin-top:12px;border:1px solid var(--line);background:#050808}.log{height:190px;overflow:auto;padding:10px;white-space:pre-wrap;line-height:1.45}.cmd{display:flex;border-top:1px solid var(--line)}.prompt{color:var(--green);padding:9px 0 9px 10px}.cmd input{flex:1;border:0;outline:0;background:transparent}.ok{color:var(--green)}.bad{color:var(--red)}.info{color:var(--cyan)}.muted{color:var(--muted)}.status{color:var(--muted);font-size:13px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:max-content}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:12px;margin-top:12px}.panel{border:1px solid var(--line);background:var(--panel);min-width:0}.panel h2{font-size:13px;color:var(--muted);padding:10px;margin:0;border-bottom:1px solid var(--line)}
+.boardWrap{padding:24px 12px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;min-height:420px;display:flex;flex-direction:column;align-items: stretch;justify-content:flex-start}
+.board{display:grid;gap:2px;width:max-content;--cell:34px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;margin:0 auto}.cell,.head{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center}.head{color:#61756f;font-size:12px}.cell{border:1px solid #223031;background:#0a1011;font-weight:900;touch-action:manipulation}.hidden{background:#162122;color:#718780}.hidden:hover{outline:1px solid var(--green)}.flag{background:#251516;color:var(--red)}.mine{color:var(--red)}.n1{color:#70d6ff}.n2{color:#9adf7f}.n3{color:#ff6b6b}.n4{color:#c792ea}.n5{color:#ff9f43}.n6{color:#56d6c9}.n7{color:#eee}.n8{color:#aaa}.clue{outline:2px solid var(--yellow);outline-offset:-2px}.safe{box-shadow:inset 0 0 0 2px var(--cyan)}.danger{box-shadow:inset 0 0 0 2px var(--red)}.exploded{outline:2px solid #ff2d55!important;outline-offset:-2px;background:#351218!important;color:#ff7b90!important}.wrongflag{box-shadow:inset 0 0 0 2px #ff4fd8!important;color:#ff4fd8!important;background:#281225!important}
+.explain{padding:14px;line-height:1.55;min-height:280px}.big{font-size:16px;font-weight:900;color:var(--yellow);margin-bottom:10px}.formula{border:1px dashed var(--line);background:#090e0f;padding:10px;margin:11px 0;white-space:pre-wrap}.legend{border-top:1px solid var(--line);padding:12px;color:var(--muted);font-size:13px;line-height:1.55}.terminal{margin-top:12px;border:1px solid var(--line);background:#050808}.log{height:190px;overflow:auto;padding:10px;white-space:pre-wrap;line-height:1.45;font-size:13px}.cmd{display:flex;border-top:1px solid var(--line)}.prompt{color:var(--green);padding:9px 0 9px 10px}.cmd input{flex:1;border:0;outline:0;background:transparent;min-width:0}
+.ok{color:var(--green)}.bad{color:var(--red)}.info{color:var(--cyan)}.muted{color:var(--muted)}.status{color:var(--muted);font-size:13px;margin:10px auto 0;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:100%}
 
-.lessonBar{width:min(680px,100%);margin:18px auto 2px;border:1px solid #314345;background:#0a1011;padding:12px 13px;box-shadow:0 10px 30px #0006}
+.lessonBar{width:min(680px,100%);margin:16px auto 2px;border:1px solid #314345;background:#0a1011;padding:12px 13px;box-shadow:0 10px 30px #0006}
 .lessonTop{display:flex;align-items:flex-start;gap:12px}.lessonNum{color:var(--yellow);font-weight:900;white-space:nowrap}.lessonCopy{flex:1;line-height:1.5}.lessonTitle{font-weight:900;color:var(--text);margin-bottom:4px}.lessonText{color:#aebdb8}
-.lessonControls{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}.lessonControls button{padding:5px 8px}.lessonProgress{margin-left:auto;color:var(--muted);font-size:12px}
+.lessonControls{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}.lessonControls button{padding:6px 9px}.lessonProgress{margin-left:auto;color:var(--muted);font-size:12px}
 .lesson-clue{outline:3px solid var(--yellow)!important;outline-offset:-3px;animation:lessonPulse .85s ease-in-out infinite alternate}.lesson-counted{box-shadow:inset 0 0 0 3px #70d6ff!important;animation:lessonPulse .85s ease-in-out infinite alternate}.lesson-wrong{box-shadow:inset 0 0 0 3px #ff4fd8!important;background:#31142d!important;color:#ff7be1!important;animation:lessonShake .35s linear 2}.lesson-real{box-shadow:inset 0 0 0 3px #ff9f43!important;background:#2d1c0d!important;color:#ffb45f!important;animation:lessonPulse .65s ease-in-out infinite alternate}.lesson-boom{outline:3px solid #ff2d55!important;outline-offset:-3px;background:#44131d!important;color:#ff8aa0!important;animation:lessonBoom .75s ease-in-out infinite alternate}.lesson-safe{box-shadow:inset 0 0 0 3px var(--cyan)!important;animation:lessonPulse .8s ease-in-out infinite alternate}.lesson-dim{opacity:.28}
 @keyframes lessonPulse{from{filter:brightness(.85)}to{filter:brightness(1.55)}}@keyframes lessonBoom{from{transform:scale(.96)}to{transform:scale(1.07)}}@keyframes lessonShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}@media(prefers-reduced-motion:reduce){.lesson-clue,.lesson-counted,.lesson-wrong,.lesson-real,.lesson-boom,.lesson-safe{animation:none}}
 
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .boardWrap{min-height:auto;padding:14px 8px 12px}
+  .explain{min-height:auto}
+}
+@media(max-width:600px){
+  .app{padding:8px}
+  .top{padding:10px;gap:6px}
+  .title{width:100%;font-size:15px;margin-bottom:2px}
+  .badge{padding:4px 6px;font-size:12px}
+  .controls{margin-left:0;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+  .controls select{grid-column:1 / -1}
+  .controls button,.controls select{width:100%;padding:9px 8px;font-size:13px;text-align:center}
+  .board{--cell:32px}
+  .panel h2{font-size:12px;padding:8px 10px}
+  .cmd input{font-size:16px}
+  .log{height:140px}
+}
 </style>
 </head>
 <body>
@@ -34,7 +56,7 @@
   </div>
 
   <div class="grid">
-    <section class="panel"><h2>BOARD — ЛКМ/тап открыть · ПКМ/удержание флаг · координаты A1, C7...</h2><div class="boardWrap">
+    <section class="panel"><h2>BOARD — тап/ЛКМ открыть · удержание/ПКМ флаг · A1, C7...</h2><div class="boardWrap">
       <div id="board" class="board"></div>
       <div id="lessonBar" class="lessonBar" hidden>
         <div class="lessonTop"><div id="lessonNum" class="lessonNum">1/1</div><div class="lessonCopy"><div id="lessonTitle" class="lessonTitle"></div><div id="lessonText" class="lessonText"></div></div></div>
